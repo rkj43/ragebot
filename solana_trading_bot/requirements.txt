@@ -1,0 +1,19 @@
+# Blockchain
+solana>=0.34
+solders>=0.21
+base58>=2.1
+
+# Data & math
+pandas>=2.1
+numpy>=1.26
+ta>=0.11
+scipy>=1.11
+
+# Infrastructure
+SQLAlchemy>=2.0
+python-dotenv>=1.0
+httpx>=0.27
+websockets>=12.0
+
+# Testing
+pytest>=8.0

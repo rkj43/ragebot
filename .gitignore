@@ -1,0 +1,19 @@
+# Secrets — never commit keys
+.env
+*.pem
+*.key
+
+# Runtime artifacts
+*.db
+*.sqlite3
+solana_trading_bot/logs/*
+!solana_trading_bot/logs/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+logs/
