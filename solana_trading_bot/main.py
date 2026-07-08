@@ -54,6 +54,7 @@ def setup_logging(log_dir: str) -> None:
             logging.FileHandler(os.path.join(log_dir, "bot.log")),
         ],
     )
+    logging.getLogger("httpx").setLevel(logging.WARNING)  # per-request noise
 
 
 class TradingBot:

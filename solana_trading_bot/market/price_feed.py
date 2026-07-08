@@ -48,8 +48,10 @@ class PriceFeed:
 
     async def poll_once(self) -> Optional[MarketSnapshot]:
         try:
-            price = await self._jupiter.get_price(self._base_mint, self._quote_mint)
-            snap = MarketSnapshot(timestamp=time.time(), price=price, source="jupiter")
+            info = await self._jupiter.get_price_info(self._base_mint)
+            snap = MarketSnapshot(timestamp=time.time(), price=info["price"],
+                                  liquidity_usd=info.get("liquidity_usd"),
+                                  source="jupiter")
             self.ingest(snap)
             self._consecutive_failures = 0
             return snap

@@ -110,16 +110,31 @@ class JupiterClient:
         return tx
 
     async def get_price(self, mint: str, vs_mint: Optional[str] = None) -> float:
-        """Spot price from Jupiter's price API (USD unless ``vs_mint`` given)."""
-        params = {"ids": mint}
-        if vs_mint:
-            params["vsToken"] = vs_mint
+        """Spot USD price from Jupiter's price API v3.
+
+        v3 quotes in USD only (``vs_mint`` is accepted for interface
+        compatibility but ignored) — equivalent to USDC for our purposes.
+        """
+        info = await self.get_price_info(mint)
+        return info["price"]
+
+    async def get_price_info(self, mint: str) -> dict:
+        """Price plus market context from price API v3.
+
+        Returns ``{"price": float, "liquidity_usd": float | None}``.
+        The v3 response is keyed by mint at the top level:
+        ``{"<mint>": {"usdPrice": ..., "liquidity": ..., ...}}``.
+        """
         try:
-            resp = await self._http.get(self._price_url, params=params)
+            resp = await self._http.get(self._price_url, params={"ids": mint})
             resp.raise_for_status()
-            data = resp.json()["data"][mint]
-        except (httpx.HTTPError, KeyError, TypeError) as exc:
+            data = resp.json().get(mint)
+        except httpx.HTTPError as exc:
             raise JupiterError(f"price request failed: {exc}") from exc
-        if data is None or data.get("price") is None:
+        if not data or data.get("usdPrice") is None:
             raise JupiterError(f"no price returned for {mint}")
-        return float(data["price"])
+        liquidity = data.get("liquidity")
+        return {
+            "price": float(data["usdPrice"]),
+            "liquidity_usd": float(liquidity) if liquidity is not None else None,
+        }

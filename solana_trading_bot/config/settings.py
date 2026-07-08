@@ -92,7 +92,7 @@ class Settings:
     poll_interval_seconds: float = 2.0
     candle_interval_seconds: int = 60
     jupiter_base_url: str = "https://quote-api.jup.ag/v6"
-    jupiter_price_url: str = "https://lite-api.jup.ag/price/v2"
+    jupiter_price_url: str = "https://lite-api.jup.ag/price/v3"
     expected_wallet_address: Optional[str] = None
     log_dir: str = "logs"
     paper_starting_usdc: float = 1_000.0
@@ -137,7 +137,7 @@ def load_settings() -> Settings:
         poll_interval_seconds=_float("POLL_INTERVAL_SECONDS", 2.0),
         candle_interval_seconds=int(_float("CANDLE_INTERVAL_SECONDS", 60)),
         jupiter_base_url=os.environ.get("JUPITER_BASE_URL", "https://quote-api.jup.ag/v6"),
-        jupiter_price_url=os.environ.get("JUPITER_PRICE_URL", "https://lite-api.jup.ag/price/v2"),
+        jupiter_price_url=os.environ.get("JUPITER_PRICE_URL", "https://lite-api.jup.ag/price/v3"),
         expected_wallet_address=os.environ.get("EXPECTED_WALLET_ADDRESS") or None,
         log_dir=os.environ.get("LOG_DIR", "logs"),
         paper_starting_usdc=_float("PAPER_STARTING_USDC", 1_000.0),
