@@ -119,7 +119,50 @@ class TradingBot:
         )
 
     # ------------------------------------------------------------------ #
+    async def _bootstrap_history(self) -> None:
+        """Seed candle history from Birdeye (optional, one request).
+
+        Skips the multi-hour EMA200 warmup after a restart. Any failure is
+        logged and ignored — the bot then warms up the slow way; it never
+        trades on data it doesn't have.
+        """
+        key = self.settings.birdeye_api_key
+        if not key:
+            logger.info("No BIRDEYE_API_KEY set — warming up from live ticks "
+                        "(~200 minutes)")
+            return
+        if self.settings.candle_interval_seconds != 60:
+            logger.warning("History bootstrap supports 1m candles only "
+                           "(configured interval %ss) — skipping",
+                           self.settings.candle_interval_seconds)
+            return
+
+        from solana_trading_bot.market.birdeye_client import BirdeyeClient, BirdeyeError
+        from solana_trading_bot.market.indicators import WARMUP_CANDLES
+
+        client = BirdeyeClient(key, self.settings.birdeye_base_url)
+        try:
+            now = time.time()
+            candles = await client.get_ohlcv_1m(
+                self.settings.pair_base_mint, minutes=WARMUP_CANDLES + 60, now=now)
+            current_bucket = now - (now % self.settings.candle_interval_seconds)
+            added = 0
+            for c in candles:
+                if c["start"] < current_bucket:  # never seed the in-progress minute
+                    self.candles.add_candle(c["start"], c["open"], c["high"],
+                                            c["low"], c["close"], c["volume"])
+                    added += 1
+            status = "complete" if added >= WARMUP_CANDLES else "partial"
+            logger.info("Bootstrapped %d historical candles from Birdeye — "
+                        "warmup %s", added, status)
+        except BirdeyeError as exc:
+            logger.warning("History bootstrap failed (%s) — falling back to "
+                           "slow warmup", exc)
+        finally:
+            await client.close()
+
     async def run(self) -> None:
+        await self._bootstrap_history()
         if self.settings.trading_mode == "live":
             await self.rpc.connect()
             from solders.pubkey import Pubkey

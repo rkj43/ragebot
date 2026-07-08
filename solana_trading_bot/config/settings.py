@@ -96,6 +96,8 @@ class Settings:
     expected_wallet_address: Optional[str] = None
     log_dir: str = "logs"
     paper_starting_usdc: float = 1_000.0
+    birdeye_api_key: Optional[str] = None
+    birdeye_base_url: str = "https://public-api.birdeye.so"
 
 
 class ConfigError(Exception):
@@ -141,4 +143,6 @@ def load_settings() -> Settings:
         expected_wallet_address=os.environ.get("EXPECTED_WALLET_ADDRESS") or None,
         log_dir=os.environ.get("LOG_DIR", "logs"),
         paper_starting_usdc=_float("PAPER_STARTING_USDC", 1_000.0),
+        birdeye_api_key=os.environ.get("BIRDEYE_API_KEY") or None,
+        birdeye_base_url=os.environ.get("BIRDEYE_BASE_URL", "https://public-api.birdeye.so"),
     )
